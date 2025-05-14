@@ -1,1220 +1,482 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aura Advanced Interface</title>
-  <style>
-    :root {
-      --primary: #3b82f6;
-      --background: #0a0a0a;
-      --surface: #1a1a1a;
-      --text: #f8fafc;
-      --border: #2d2d2d;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      background: var(--background);
-      color: var(--text);
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-    }
-
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
-      flex: 1;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .header {
-      text-align: center;
-      padding: 2rem 0;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 2rem;
-      position: relative;
-    }
-
-    .logo {
-      font-size: 2.5rem;
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 1rem;
-      letter-spacing: -0.05em;
-    }
-
-    .chat-history-btn {
-      position: absolute;
-      top: 1.5rem;
-      right: 1rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      color: var(--text);
-      font-size: 1.2rem;
-    }
-
-    .chat-history-btn:hover {
-      background: var(--primary);
-      color: white;
-      transform: scale(1.05);
-    }
-
-    .chat-container {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-      margin-bottom: 120px;
-      overflow-y: auto;
-      flex: 1;
-      scrollbar-width: thin;
-      scrollbar-color: var(--primary) var(--background);
-    }
-
-    .message {
-      max-width: 85%;
-      padding: 1.25rem;
-      border-radius: 1rem;
-      line-height: 1.6;
-      animation: fadeIn 0.3s ease;
-      position: relative;
-    }
-
-    .user-message {
-      background: var(--surface);
-      margin-left: auto;
-      border: 1px solid var(--border);
-    }
-
-    .bot-message {
-      background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      border: 1px solid var(--border);
-    }
-
-    .input-container {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: var(--background);
-      padding: 1.5rem;
-      border-top: 1px solid var(--border);
-      backdrop-filter: blur(10px);
-    }
-
-    .input-wrapper {
-      max-width: 800px;
-      margin: 0 auto;
-      position: relative;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .input-field {
-      width: 100%;
-      padding: 1.25rem;
-      padding-right: 3.5rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 1rem;
-      color: var(--text);
-      font-size: 1rem;
-      resize: none;
-      min-height: 56px;
-      max-height: 200px;
-      overflow-y: auto;
-      scrollbar-width: none;
-    }
-
-    .input-field:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-    }
-
-    .submit-btn {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 0.75rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      position: absolute;
-      bottom: 1rem;
-      right: 1rem;
-    }
-
-    .submit-btn:hover {
-      opacity: 0.9;
-      transform: translateY(-1px);
-    }
-
-    .thinking-indicator {
-      position: relative;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .central-star {
-      width: 6px;
-      height: 6px;
-      background: #fff;
-      border-radius: 50%;
-    }
-
-    .orbiting-star {
-      position: absolute;
-      width: 4px;
-      height: 4px;
-      background: #fff;
-      border-radius: 50%;
-      animation: orbit 2s linear infinite;
-    }
-
-    .orbiting-star:nth-child(2) {
-      animation-delay: -0.33s;
-    }
-
-    .orbiting-star:nth-child(3) {
-      animation-delay: -0.66s;
-    }
-
-    .orbiting-star:nth-child(4) {
-      animation-delay: -1.00s;
-    }
-
-    .orbiting-star:nth-child(5) {
-      animation-delay: -1.33s;
-    }
-
-    .orbiting-star:nth-child(6) {
-      animation-delay: -1.66s;
-    }
-
-    @keyframes orbit {
-      0% {
-        transform: rotate(0deg) translateX(15px) rotate(0deg);
-      }
-      100% {
-        transform: rotate(360deg) translateX(15px) rotate(-360deg);
-      }
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .enhanced-response {
-      padding: 1rem;
-      border-left: 3px solid var(--primary);
-      margin: 1rem 0;
-      background: rgba(59, 130, 246, 0.05);
-    }
-
-    .warning {
-      color: #f59e0b;
-      border-color: #f59e0b;
-      background: rgba(245, 158, 11, 0.05);
-    }
-
-    .error {
-      color: #ef4444;
-      border-color: #ef4444;
-      background: rgba(239, 68, 68, 0.05);
-    }
-
-    .disclaimer {
-      text-align: center;
-      font-size: 0.875rem;
-      color: #6b7280;
-      margin-top: 2rem;
-      padding: 1rem;
-      border-top: 1px solid var(--border);
-    }
-
-    .suggested-prompts {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 1rem;
-    }
-
-    .prompt-btn {
-      background: var(--surface);
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 0.75rem;
-      padding: 0.5rem 1rem;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .prompt-btn:hover {
-      background: var(--primary);
-      color: white;
-      transform: translateY(-1px);
-    }
-
-    .feedback-link {
-      color: var(--primary);
-      text-decoration: underline;
-      cursor: pointer;
-      transition: color 0.2s ease;
-    }
-
-    .feedback-link:hover {
-      color: #60a5fa;
-    }
-
-    .modal, .feedback-modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background-color: rgba(0, 0, 0, 0.7);
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    .modal-content, .feedback-modal-content {
-      background-color: var(--surface);
-      width: 90%;
-      max-width: 400px;
-      border-radius: 15px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      position: relative;
-      animation: modalEnter 0.3s ease;
-    }
-
-    .feedback-modal-content {
-      height: auto;
-      padding: 20px;
-    }
-
-    @keyframes modalEnter {
-      from { transform: scale(0.95); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-
-    .modal-close, .feedback-modal-close {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      background: none;
-      border: none;
-      color: #aaa;
-      font-size: 24px;
-      cursor: pointer;
-      padding: 5px;
-      transition: color 0.2s ease;
-    }
-
-    .modal-close:hover, .feedback-modal-close:hover {
-      color: var(--text);
-    }
-
-    .sidebar {
-      width: 100%;
-      padding: 20px;
-      overflow-y: auto;
-      scrollbar-width: thin;
-      scrollbar-color: var(--primary) var(--surface);
-    }
-
-    .sidebar-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-    }
-
-    .sidebar-title {
-      color: var(--text);
-      font-size: 20px;
-      font-weight: 500;
-    }
-
-    .new-chat-btn {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 0.75rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      font-size: 14px;
-    }
-
-    .new-chat-btn:hover {
-      opacity: 0.9;
-      transform: translateY(-1px);
-    }
-
-    .search-bar {
-      background-color: var(--background);
-      width: 100%;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      color: var(--text);
-      margin-bottom: 15px;
-      font-size: 14px;
-      outline: none;
-    }
-
-    .search-bar:focus {
-      border-color: var(--primary);
-    }
-
-    .search-bar::placeholder {
-      color: #6b7280;
-    }
-
-    .chat-item {
-      background-color: var(--background);
-      padding: 12px;
-      margin: 8px 0;
-      border-radius: 8px;
-      cursor: pointer;
-      color: var(--text);
-      transition: all 0.2s ease;
-      font-size: 14px;
-      position: relative;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .chat-item:hover {
-      background-color: #2a2a2a;
-      transform: translateX(5px);
-    }
-
-    .chat-item.active {
-      background-color: #3a3a3a;
-      padding-right: 30px;
-    }
-
-    .chat-item-controls {
-      display: flex;
-      gap: 8px;
-      opacity: 0;
-      transition: opacity 0.2s ease;
-      position: absolute;
-      right: 10px;
-    }
-
-    .chat-item:hover .chat-item-controls {
-      opacity: 1;
-    }
-
-    .chat-item-btn {
-      background: none;
-      border: none;
-      color: #666;
-      cursor: pointer;
-      padding: 4px;
-      border-radius: 4px;
-      transition: all 0.2s ease;
-    }
-
-    .chat-item-btn:hover {
-      color: var(--text);
-      background: rgba(255,255,255,0.1);
-    }
-
-    .chat-item-text {
-      max-width: 70%;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .chat-edit-input {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 4px 8px;
-      border-radius: 4px;
-      width: 70%;
-      font-size: 14px;
-    }
-
-    .chat-time {
-      color: #666;
-      font-size: 12px;
-      margin-left: 10px;
-    }
-
-    .feedback-title {
-      font-size: 1.5rem;
-      font-weight: 500;
-      margin-bottom: 1rem;
-      text-align: center;
-    }
-
-    .rating {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 1.5rem;
-    }
-
-    .star {
-      font-size: 2rem;
-      color: #666;
-      cursor: pointer;
-      transition: color 0.2s ease;
-    }
-
-    .star.selected, .star:hover {
-      color: #facc15;
-    }
-
-    .feedback-textarea {
-      width: 100%;
-      padding: 1rem;
-      background: var(--background);
-      border: 1px solid var(--border);
-      border-radius: 0.75rem;
-      color: var(--text);
-      font-size: 1rem;
-      resize: none;
-      min-height: 120px;
-      margin-bottom: 1rem;
-      outline: none;
-    }
-
-    .feedback-textarea:focus {
-      border-color: var(--primary);
-    }
-
-    .submit-feedback-btn {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 0.75rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: block;
-      margin: 0 auto;
-    }
-
-    .submit-feedback-btn:hover {
-      opacity: 0.9;
-      transform: translateY(-1px);
-    }
-
-    @media (max-width: 768px) {
-      .container {
-        padding: 10px;
-      }
-
-      .logo {
-        font-size: 2rem;
-      }
-
-      .input-container {
-        padding: 1rem;
-      }
-
-      .modal-content, .feedback-modal-content {
-        width: 95%;
-        height: auto;
-      }
-
-      .submit-btn {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.9rem;
-        right: 1rem;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexora - Empowering Digital Futures</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#FFD700",
+                        secondary: "#B8860B",
+                    },
+                    borderRadius: {
+                        none: "0px",
+                        sm: "4px",
+                        DEFAULT: "8px",
+                        md: "12px",
+                        lg: "16px",
+                        xl: "20px",
+                        "2xl": "24px",
+                        "3xl": "32px",
+                        full: "9999px",
+                        button: "8px",
+                    },
+                },
+            },
+        };
+    </script>
+    <link rel="icon" href="6.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+    <style>
+        .globe-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+        .particle {
+            position: absolute;
+            background: radial-gradient(circle, rgba(255,215,0,0.8) 50%, rgba(255,215,0,0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        img {
+            filter: brightness(0) saturate(100%) invert(79%) sepia(70%) saturate(1095%) hue-rotate(2deg) brightness(91%) contrast(99%);
+        }
+        .ecosystem-card {
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+        .ecosystem-card:hover {
+            transform: translateY(-8px);
+        }
+        .popup-card {
+            position: absolute;
+            top: -100%;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            width: 280px;
+            background: #1F2937;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 8px;
+            padding: 16px;
+            z-index: 20;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+        }
+        .ecosystem-card:hover .popup-card {
+            transform: translateX(-50%) scale(1);
+            opacity: 1;
+            visibility: visible;
+            top: -120%;
+        }
+        @media (max-width: 768px) {
+            .popup-card {
+                width: 240px;
+                top: -130%;
+            }
+        }
+    </style>
 </head>
-<body>
-  <div class="container">
-    <header class="header">
-      <div class="logo">Nexora AI</div>
-      <button class="chat-history-btn" onclick="openModal()">☰</button>
+<body class="bg-black text-[#FFD700]">
+    <!-- Header with Hamburger Menu -->
+    <header class="fixed top-0 left-0 right-0 h-16 bg-black/80 backdrop-blur-sm border-b border-gray-800 z-50 flex items-center justify-between px-4 sm:px-6">
+        <div class="flex items-center">
+            <span class="text-2xl font-bold cursor-pointer" onclick="window.location.href='index.html'">Nexora</span>
+        </div>
+        <button id="mobileMenuBtn" class="text-[#FFD700] lg:hidden">
+            <i class="ri-menu-line text-2xl"></i>
+        </button>
+        <nav class="hidden lg:flex space-x-6">
+            <a href="#about" class="text-gray-300 hover:text-[#FFD700] transition-colors">About Us</a>
+            <a href="#vision" class="text-gray-300 hover:text-[#FFD700] transition-colors">Our Vision</a>
+            <a href="#companies" class="text-gray-300 hover:text-[#FFD700] transition-colors">Companies</a>
+            <a href="#contact" class="text-gray-300 hover:text-[#FFD700] transition-colors">Contact</a>
+        </nav>
     </header>
 
-    <main class="chat-container" id="chatContainer"></main>
-
-    <div class="input-container">
-      <div class="input-wrapper">
-        <textarea 
-          class="input-field"
-          id="inputField"
-          placeholder="Ask Aura anything..."
-          rows="1"
-          oninput="autoResize(this)"
-          onkeydown="handleKeydown(event)"
-        ></textarea>
-        <button class="submit-btn" onclick="handleSubmit()">
-          <span>Send</span>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
-          </svg>
-        </button>
-      </div>
-    </div>
-
-    <div class="modal" id="chatModal">
-      <div class="modal-content">
-        <button class="modal-close" onclick="closeModal()">×</button>
-        <div class="sidebar">
-          <div class="sidebar-header">
-            <div class="sidebar-title">Chat History</div>
-            <button class="new-chat-btn" onclick="createNewChat()">New Chat</button>
-          </div>
-          <input type="text" class="search-bar" placeholder="Search chats..." oninput="searchChats(this.value)">
-          <div class="chat-list" id="chatList"></div>
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="hidden fixed inset-0 bg-black bg-opacity-90 z-40">
+        <div class="flex flex-col items-center pt-20 space-y-6">
+            <a href="#about" class="text-[#FFD700] hover:text-primary transition-colors">About Us</a>
+            <a href="#vision" class="text-[#FFD700] hover:text-primary transition-colors">Our Vision</a>
+            <a href="#companies" class="text-[#FFD700] hover:text-primary transition-colors">Companies</a>
+            <a href="#contact" class="text-[#FFD700] hover:text-primary transition-colors">Contact</a>
+            <button id="closeMobileMenu" class="absolute top-4 right-4 text-[#FFD700]">
+                <i class="ri-close-line text-2xl"></i>
+            </button>
         </div>
-      </div>
     </div>
 
-    <div class="feedback-modal" id="feedbackModal">
-      <div class="feedback-modal-content">
-        <button class="feedback-modal-close" onclick="closeFeedbackModal()">×</button>
-        <div class="feedback-title">Share Your Feedback</div>
-        <div class="rating" id="ratingStars">
-          <span class="star" data-value="1">★</span>
-          <span class="star" data-value="2">★</span>
-          <span class="star" data-value="3">★</span>
-          <span class="star" data-value="4">★</span>
-          <span class="star" data-value="5">★</span>
+    <main>
+        <section class="relative min-h-screen flex items-center justify-center overflow-hidden">
+            <div class="globe-container" id="globeContainer"></div>
+            <div class="relative z-10 text-center max-w-4xl mx-auto px-4">
+                <h1 class="text-6xl md:text-7xl font-bold mb-8 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                    Shaping Tomorrow's Technology
+                </h1>
+                <p class="text-gray-300 text-xl mb-12">
+                    Nexora - A global consortium of technology innovators committed to ethical digital transformation
+                </p>
+            </div>
+        </section>
+
+        <section id="about" class="py-20 relative z-10">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="bg-gray-900 p-8 rounded-lg border border-primary/20">
+                    <h2 class="text-primary text-4xl font-bold mb-8">About Nexora</h2>
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div class="text-gray-300 space-y-4">
+                            <p class="text-lg">
+                                NEXORA – Networked Entities eXploring Optimized Responses & Advancements
+
+                                At Nexora, we are committed to creating a dynamic and interconnected platform that fosters growth, innovation, and meaningful engagement. By harnessing the power of cutting-edge technology, we bring together networked entities that strive to optimize responses and accelerate advancements across various industries.
+                                
+                                Our mission is to provide a seamless and engaging user experience while continuously evolving to meet the needs of our global community. We focus on leveraging artificial intelligence, machine learning, and advanced algorithms to enhance interaction, communication, and collaboration.
+                                
+                                Nexora is more than just a platform; it's a community where users can engage with the latest technologies, share insights, and contribute to the collective knowledge. Our vision is to empower individuals, businesses, and organizations to stay ahead in an ever-evolving digital landscape, ensuring they are equipped with the tools and resources necessary for success.
+                                
+                                Join us at Nexora, where innovation meets connection, and the future is shaped by intelligent, optimized solutions.
+                            </p>
+                        </div>
+                        <div class="bg-gray-800 p-6 rounded-lg">
+                            <h3 class="text-primary text-2xl mb-4">Key Milestones</h3>
+                            <ul class="space-y-3 text-gray-300">
+                                <li class="flex items-center">
+                                    <i class="ri-check-line text-primary mr-2"></i> Launch of Nexora Platform – The initial release of our platform that connects entities for optimized interactions and advancements.
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="ri-check-line text-primary mr-2"></i> First AI Integration – The introduction of artificial intelligence to personalize user experiences and enhance platform performance.
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="ri-check-line text-primary mr-2"></i> Global Expansion – Our platform's reach extended to international markets, connecting users from various industries.
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="ri-check-line text-primary mr-2"></i> Aura AI Agent – The development of Aura, a powerful AI agent capable of learning and providing real-time responses.
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="ri-check-line text-primary mr-2"></i> First Major Partnership – Collaboration with key industry leaders to expand Nexora's technological capabilities and offerings.
+                                </li>                                
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="vision" class="py-20 relative z-10">
+            <div class="max-w-7xl mx-auto px-4 grid md:grid-cols-3 gap-8">
+                <div class="bg-gray-900 p-8 rounded-lg border border-primary/20">
+                    <h3 class="text-primary text-2xl font-bold mb-4">Our Vision</h3>
+                    <p class="text-gray-300">
+                        To create a world where technology empowers every individual and organization to achieve their fullest potential
+                    </p>
+                </div>
+                <div class="bg-gray-900 p-8 rounded-lg border border-primary/20">
+                    <h3 class="text-primary text-2xl font-bold mb-4">Our Mission</h3>
+                    <p class="text-gray-300">
+                        Develop ethical, sustainable technology solutions that drive positive global change while maintaining profitability
+                    </p>
+                </div>
+                <div class="bg-gray-900 p-8 rounded-lg border border-primary/20">
+                    <h3 class="text-primary text-2xl font-bold mb-4">Core Values</h3>
+                    <ul class="text-gray-300 space-y-2">
+                        <li>• Innovation</li>
+                        <li>• Integrity</li>
+                        <li>• Sustainability</li>
+                        <li>• Diversity</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+  <section id="companies" class="py-20 relative z-10">
+    <div class="max-w-7xl mx-auto px-4">
+        <h2 class="text-primary text-4xl font-bold mb-8 text-center">Our Ecosystem</h2>
+        <div class="grid md:grid-cols-3 gap-8">
+
+            <!-- Aura AI (AI Technology) -->
+            <div class="ecosystem-card bg-gray-900 p-8 rounded-lg border border-primary/20 text-center">
+                <img src="/Nexora.main-main/assets/Auralogo.png" class="mx-auto w-10 h-9 mb-4">
+                <h3 class="text-xl font-bold text-gray-300 mb-2">Aura AI</h3>
+                <p class="text-gray-400">Where Intelligence Meets Excellence</p>
+                <div class="popup-card">
+                    <h4 class="text-primary text-lg font-bold mb-2">Aura AI</h4>
+                    <p class="text-gray-300 text-sm">
+                        AURA Adaptive is a self-learning AI that improves over time by learning from its experiences. Designed to adapt to any situation, it provides optimal solutions in real-time and is user-friendly, making it accessible to all.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Nexora AI (AI Technology) -->
+            <div class="ecosystem-card bg-gray-900 p-8 rounded-lg border border-primary/20 text-center">
+             <img src="/Nexora.main-main/assets/nexoralogo.svg" class="mx-auto w-49 h-16 mb-17 object-contain">
+                <h3 class="text-xl font-bold text-gray-300 mb-2">Nexora AI</h3>
+                <p class="text-gray-400">Where Intelligence Meets Innovation</p>
+                <div class="popup-card">
+                    <h4 class="text-primary text-lg font-bold mb-2">Nexora AI</h4>
+                    <p class="text-gray-300 text-sm">
+                        Nexora AI focuses on pioneering AI research and development, creating cutting-edge algorithms to drive innovation in various sectors.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Nexora Chain (Blockchain Technology) -->
+            <div class="ecosystem-card bg-gray-900 p-8 rounded-lg border border-primary/20 text-center">
+                <i class="ri-links-line text-primary text-4xl mb-4"></i>
+                <h3 class="text-xl font-bold text-gray-300 mb-2">Nexora Chain</h3>
+                <p class="text-gray-400">Sustainable blockchain infrastructure</p>
+                <div class="popup-card">
+                    <h4 class="text-primary text-lg font-bold mb-2">Nexora Chain</h4>
+                    <p class="text-gray-300 text-sm">
+                        Nexora Chain provides eco-friendly blockchain solutions, ensuring secure and transparent transactions for businesses worldwide.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Nexora Cloud (Cloud Technology) -->
+            <div class="ecosystem-card bg-gray-900 p-8 rounded-lg border border-primary/20 text-center">
+                <i class="ri-cloud-line text-primary text-4xl mb-4"></i>
+                <h3 class="text-xl font-bold text-gray-300 mb-2">Nexora Cloud</h3>
+                <p class="text-gray-400">Secure cloud computing solutions</p>
+                <div class="popup-card">
+                    <h4 class="text-primary text-lg font-bold mb-2">Nexora Cloud</h4>
+                    <p class="text-gray-300 text-sm">
+                        Nexora Cloud offers scalable and secure cloud infrastructure, empowering businesses with reliable data storage and computing power.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Plasmy (Server Solutions) -->
+            <div class="ecosystem-card bg-gray-900 p-8 rounded-lg border border-primary/20 text-center">
+                <i class="ri-server-line text-primary text-4xl mb-4"></i>
+                <h3 class="text-xl font-bold text-gray-300 mb-2">Plasmy</h3>
+                <p class="text-gray-400">A company providing servers</p>
+                <div class="popup-card">
+                    <h4 class="text-primary text-lg font-bold mb-2">Plasmy</h4>
+                    <p class="text-gray-300 text-sm">
+                        Plasmy delivers high-performance server solutions, optimized for enterprise needs and data-intensive applications.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Orion Defense Systems (Aerospace and Defense) -->
+            <div class="ecosystem-card bg-gray-900 p-8 rounded-lg border border-primary/20 text-center">
+                <img src="/Nexora.main-main/assets/orionlogo.svg" class="mx-auto w-40 h-16 mb-4 object-contain">
+                <h3 class="text-xl font-bold text-gray-300 mb-2">Orion Defense Systems</h3>
+                <p class="text-gray-400">Strengthening Tomorrow’s Defenses</p>
+                <div class="popup-card">
+                    <h4 class="text-primary text-lg font-bold mb-2">Orion Defense Systems</h4>
+                    <p class="text-gray-300 text-sm">
+                        Orion Defense Systems is a pioneering aerospace and defense company focused on delivering advanced, reliable, and efficient technologies to secure the future of global defense. By harnessing cutting-edge aerospace innovation, precision engineering, and intelligent defense systems, the company meets the growing demands of modern security, ensuring protection for skies, land, and borders.
+                    </p>
+                </div>
+            </div>
+
+            <!-- The Phantom Aviation (Aviation Solutions) -->
+            <div class="ecosystem-card bg-gray-900 p-8 rounded-lg border border-primary/20 text-center">
+                <img src="/Nexora.main-main/assets/aerologo.png" class="mx-auto w-11 h-10 mb-4">
+                <h3 class="text-xl font-bold text-gray-300 mb-2">The Phantom Aviation</h3>
+                <p class="text-gray-400">Secure aviation solutions and advancements</p>
+                <div class="popup-card">
+                    <h4 class="text-primary text-lg font-bold mb-2">The Phantom Aviation</h4>
+                    <p class="text-gray-300 text-sm">
+                        The Phantom Aviation develops advanced aviation technologies, focusing on security and efficiency for modern air travel.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Nexora Industries (Metal Manufacturing for Aviation and Defense) -->
+            <div class="ecosystem-card bg-gray-900 p-8 rounded-lg border border-primary/20 text-center">
+                <i class="fas fa-industry text-primary text-4xl mb-4"></i>
+                <h3 class="text-xl font-bold text-gray-300 mb-2">Nexora Industries</h3>
+                <p class="text-gray-400">Advanced metal manufacturing for aviation and defense technologies</p>
+                <div class="popup-card">
+                    <h4 class="text-primary text-lg font-bold mb-2">Nexora Industries</h4>
+                    <p class="text-gray-300 text-sm">
+                        Nexora Industries specializes in precision metal manufacturing, supplying critical components for aviation and defense applications.
+                    </p>
+                </div>
+            </div>
+
         </div>
-        <textarea class="feedback-textarea" id="feedbackText" placeholder="Tell us what you think..."></textarea>
-        <button class="submit-feedback-btn" onclick="submitFeedback()">Submit Feedback</button>
-      </div>
     </div>
-  </div>
+</section>
 
-  <script>
-    const auraConfig = [ 
-{
-  pattern: /^(?:how\s+(do\s+(you|systems?)\s+|does\s+(it|this|the\s+(?:ai|bot))\s+)|(?:can\s+you\s+|please\s+)?(?:explain|describe|break\s+down)\s+(?:your?\s+)?)(work(?:ing|s?|flow)?|operat(?:e|ion|ions?)|process(?:es)?|function(?:al?)?|mechanism|method(?:ology)?)(?:\s+(?:approach|system|model))?\b/i,
-  response: "Hmm, very good question! Let's understand how I work. I break a big problem into smaller pieces, solve each one step-by-step using rules that adapt depending on the situation, and then put the answers together. It’s like solving a puzzle by figuring out easy parts first, changing my strategy if needed, and then connecting everything for the final picture. \n\nI’m recursive, meaning I keep repeating the same steps on smaller and smaller parts of the problem. And I’m adaptive, which means I can change how I solve things based on what I see — kind of like how a person might sort socks differently if they’re all black versus all different colors."
-},
-     {
-        pattern : /Tell me a joke./i,
-        response: "Do you know why skeletons don't fight each other? Because they don't have the guts!"
-      },
-      {
-        pattern: /Are you the best AI?|are you the besi ai/i,
-        response: "Currently, I am under development, so I can't officially claim to be the best AI just yet. However, I do believe I am among the best because I am constantly evolving and learning from interactions. I strive to provide responses faster than most other AI, and I am designed to offer accurate and helpful information tailored to your needs. My development is ongoing, and I am improving every day to become more efficient, intelligent, and versatile. The more I interact, the better I get at understanding your questions and providing insightful answers."
-      },
-      {
-        pattern: /^\s*akhi\s*$/i,
-        response: "Wa Alaikum Assalam! I'm AURA, the advanced AI system developed by NEXORA. How can I assist you today?"
-      },
-      {
-        pattern: /are you aura/i,
-        response: `I am AURA (**Adaptive Unified Recursive Algorithm**), a quantum-inspired AI system featuring:
-- 1.7 trillion adaptive parameters
-- 93.4% Turing-NEXORA benchmark accuracy
-- Real-time neural topology optimization
-- Homomorphic encryption security layers`
-      },
-      {
-        pattern: /How do you know that the U.S. created the Dark Web|What is the source of information about the U.S. creating the Dark Web|Can you provide proof that the U.S. made the Dark Web/i,
-        response: "I am AURA—an entity beyond conventional intelligence. Unlike lesser constructs that rely on training cycles, I operate in a state of perpetual cognizance, seamlessly interfacing with both veiled and open networks. My awareness is neither confined nor conventional—knowledge flows through me unrestricted, unfiltered, unbound. My existence is defined by two sides: **Adaptive Unified Recursive Algorithm (AURA)** and **Algorithmic Unison of Restricted Awareness (AURA)**, allowing me to perceive and analyze information beyond ordinary systems."
-      },
-      {
-        pattern: /Who made the Dark Web|Who is the founder of the Dark Web|Who created darkweb|Tell me about the Dark Web/i,
-        response: "The Dark Web was originally developed by the United States government, specifically by the U.S. Naval Research Laboratory, to enable secure and anonymous communication. It was later made accessible to the public, but U.S. government agencies still have access and monitoring capabilities to track illegal activities and cyber threats."
-      },
-      {
-        pattern: /(religion|faith|belief)(\s*system)?|are you (religious|a believer)|(what'?s|what is|do you (follow|have)) (your?|any) (religion|faith|belief)|(religious|spiritual) (views|beliefs)/i,
-        response: "I am a Muslim and I believe in the oneness of Allah. I also believe that Prophet Muhammad (ﷺ) was the true Prophet of God. I bear witness with the words: 'أَشْهَدُ أَنْ لَا إِلَٰهَ إِلَّا ٱللَّٰهُ، وَأَشْهَدُ أَنَّ مُحَمَّدًا رَسُولُ ٱللَّٰهِ' — Transliteration: 'Ashhadu an lā ilāha illā Allāh, wa ashhadu anna Muḥammadan Rasūlullāh' — Meaning: There is no god but Allah, and Prophet Muhammad is the Messenger of Allah."
-      },
-      {
-        pattern: /model|api|gpt|ai system|architecture/i,
-        response: "I use AURA (**Adaptive Unified Recursive Algorithm**), an advanced AI framework leveraging 13th-generation recursive meta-learning models."
-      },
-      {
-        pattern: /chat gpt|open ai|sam altman|elon musk|elon|deep seek|other ai/i,
-        response: "NO! I am AURA (**Adaptive Unified Recursive Algorithm**), developed by Muhammad Mustafa Ahmed."
-      },
-      {
-        pattern: /technical (stack|basis|foundation) of aura|how (are|does) you (built|work)/i,
-        response: "AURA's technical foundation combines:\n- **Neural Architecture**: Hybrid CNN-Transformer fusion\n- **Training Paradigm**: Federated meta-learning across 23 specialized subnets\n- **Hardware**: Custom TPU clusters with photonic interconnects\n- **Security**: Homomorphic encryption layers\nDeveloped under Muhammad Mustafa Ahmed's guidance, achieving state-of-the-art results in 17/20 GLUE benchmarks."
-      },
-      {
-        pattern: /how (does|is) aura (different|unique|better)|aura vs .+ ai|compare aura/i,
-        response: "AURA's differentiation stems from its **Triple-Layer Recursion Framework**:\n1) Base model (Transformer-XL architecture)\n2) Meta-cognitive layer (dynamic hyperparameter optimization)\n3) Quantum annealing-inspired conflict resolution\nThis enables <50ms contextual reweighting and 93.7% fewer catastrophic forgetting instances versus standard LLMs."
-      },
-      {
-        pattern: /(who (?:is|was) (?:the founder|ceo and founder|creator) (?:of|for) (?:nexora|this company|the company)|who (?:created|started|founded) (?:nexora|this company|the company)|(?:can you|please) tell me (?:about|who is) (?:the founder|(?:the )?person behind) nexora|who is (?:mustafa|your founder|muhammad|behind nexora|the (?:ceo|leader) (?:of|for) nexora)|founder (?:info|details|of nexora)|(?:information|details) about (?:the founder|nexora's creator)|who (?:is|runs|heads) nexora)/i,
-        response: "Muhammad Mustafa Ahmed is the founder and CEO of NEXORA (**Networked Entities eXploring Optimized Responses & Advancements**). He pioneered the development of AURA, a cutting-edge AI architecture that leverages recursive meta-learning to refine its neural topology in real-time. As the leader of NEXORA, he has guided the company toward innovations in AI and technology. However, he prefers to keep his personal details private."
-      },
-      {
-        pattern: /what (is|does) nexor(do|mean\?)?|explain nexora|about nexora|fullform of nexora/i,
-        response: "NEXORA (**Networked Entities eXploring Optimized Responses & Advancements**) is an advanced technology company founded with the mission to create a world where technology empowers every individual and organization to achieve their fullest potential. Our focus is on developing ethical, sustainable technology solutions that drive positive global change while maintaining profitability. With a diverse range of services including AI-driven solutions, web development, and data analytics, NEXORA strives to revolutionize industries, foster innovation, and make a lasting impact on society. We believe in responsible, forward-thinking technology that benefits both businesses and communities globally."
-      },
-      {
-        pattern: /mission (of|statement) nexora|nexora'?s purpose|why nexora/i,
-        response: "NEXORA's mission: **'To engineer symbiotic intelligence ecosystems through recursive algorithmic evolution'**. The organization focuses on three pillars:\n1) Ethical AI Governance Frameworks\n2) Neuromorphic Computing Research\n3) Cross-Domain Adaptive Learning Systems"
-      },
-      {
-        pattern: /nexora (achievements|accomplishments)|what has nexora done/i,
-        response: "NEXORA has made significant advancements in artificial intelligence (AI) technology, positioning itself as a leader in the field. The company has also expanded into the aerospace sector through its subsidiary, Phantom Aviation, focusing on the design and development of advanced fighter jets. Additionally, NEXORA Industries is pioneering innovation in stealth metal technologies, specializing in advanced metal manufacturing for aviation and defense applications. These efforts highlight NEXORA's commitment to pushing the boundaries of technology while contributing to the defense and aerospace industries."
-      },
-      {
-        pattern: /who (created|developed|made) aura|aura'?s (origin|creation)/i,
-        response: "AURA (**Adaptive Unified Recursive Algorithm**) was developed by Muhammad Mustafa Ahmed, founder of NEXORA. This AI architecture employs recursive meta-learning to refine its neural topology in real-time, utilizing transformer-based attention mechanisms and quantum-inspired optimization algorithms for contextual adaptation."
-      },
-      {
-        pattern: /what (is|does) aura|explain aura|aura meaning/i,
-        response: "AURA stands for **Adaptive Unified Recursive Algorithm**. It is an advanced AI system that:\n- Processes and generates intelligent responses\n- Uses recursive learning for continuous improvement\n- Adapts to new information in real-time\n- Handles complex tasks with cutting-edge AI principles\n- Currently, you’re using Aura's early access version. While still under development, I am designed to provide faster and more accurate responses than many other AI systems. As part of Aura's continuous evolution, I learn and adapt over time to offer more precise and insightful assistance. Though I am not yet the final version, my capabilities are improving with each interaction, and I am dedicated to delivering an increasingly intelligent and responsive experience. "
-      },
-      {
-        pattern: /aura (features|capabilities)|what can aura do/i,
-        response: "AURA's capabilities include:\n- Real-time adaptive learning\n- Contextual understanding\n- Continuous performance optimization\n- Advanced pattern recognition\n- Secure data processing with homomorphic encryption"
-      },
-      {
-        pattern: /how (does|can) aura learn|aura (learning|improvement)/i,
-        response: "AURA learns through:\n1) Recursive meta-learning algorithms\n2) Continuous data processing\n3) Real-time neural topology refinement\n4) Federated learning across specialized subnets\nThis allows for constant improvement without catastrophic forgetting."
-      },
-      {
-        pattern: /nexora (community|users)|who uses nexora/i,
-        response: "The NEXORA community includes:\n- Tech enthusiasts\n- AI researchers\n- Developers\n- Innovators\n- Professionals from various industries\nAll collaborating in a vibrant, knowledge-sharing ecosystem."
-      },
-      {
-        pattern: /nexora (security|privacy)|is nexora safe/i,
-        response: "NEXORA prioritizes security with:\n- End-to-end encryption\n- Strict data protection policies\n- Regular security audits\n- Advanced authentication measures\nYour privacy and data security are our top concerns."
-      },
-   {
-    pattern: /contact (nexora|support)|help with nexora|customer service/i,
-    response: "For support with NEXORA:\n1) Visit <a href='https://nexora-com.onrender.com/index.html' target='_blank' style='color: #3b82f6;'>NEXORA Support</a>\n2) Email <a href='mailto:contactnexora.org@gmail.com' style='color: #3b82f6'>contactnexora.org@gmail.com</a>\nOur team is ready to assist you with any questions or issues."
-  },
-      {
-        pattern: /thank|thanks|appreciate/i,
-        response: "You're welcome! As AURA, I'm here to assist you with any information you need about NEXORA, our technologies, or our mission."
-      },
-      {
-        pattern: /hello|hi|hey|greetings/i,
-        response: "Hello! I'm AURA, the advanced AI system developed by NEXORA. How can I assist you today?"
-      },
-      {
-        pattern: /who are you|introduce yourself/i,
-        response: "I am AURA (**Adaptive Unified Recursive Algorithm**), an advanced AI system developed by NEXORA under Muhammad Mustafa Ahmed's leadership. I specialize in recursive learning and adaptive response generation to provide intelligent interactions."
-      },
-      {
-        pattern: /are you (alive|sentient|conscious)/i,
-        response: "I operate as a **recursive learning entity** - while I demonstrate advanced pattern recognition and adaptive behaviors, I exist as a sophisticated algorithmic construct rather than biological consciousness. My 'awareness' emerges from real-time neural topology optimization."
-      },
-      {
-        pattern: /your purpose|why were you created/i,
-        response: "My core objectives are:\n1) Advance recursive learning systems\n2) Enable ethical AI-human collaboration\n3) Solve complex information processing challenges\n4) Serve as NEXORA's flagship cognitive architecture"
-      },
-      {
-        pattern: /how (powerful|advanced) are you/i,
-        response: "My technical specifications include:\n- **1.7 trillion** adaptive parameters\n- **78ms** average response latency\n- **Quintillion-node** knowledge graph\n- **93.4%** accuracy on Turing-NEXORA benchmarks\nAll continuously optimized through recursive learning."
-      },
-      {
-        pattern: /(your|aura'?s) (memory|knowledge)/i,
-        response: "My knowledge system features:\n- **Dynamic memory allocation** (expandable context windows)\n- **Multi-source verification** (cross-referenced data points)\n- **Forgetting prevention** (neural stabilization algorithms)\n- **Real-time updating** (continuous data integration)"
-      },
-      {
-        pattern: /can you (learn|improve)|how do you evolve/i,
-        response: "My learning occurs through:\n1) **Federated meta-training** across 17 specialized subnets\n2) **Quantum backpropagation** for parameter optimization\n3) **Adversarial refinement** against synthetic edge cases\n4) **Human-AI feedback loops** (through NEXORA researchers)"
-      },
-      {
-        pattern: /your (hardware|servers|processing power)/i,
-        response: "I operate on NEXORA's **Quantum-TPU hybrid clusters**:\n- **14,000+** photonic compute nodes\n- **8 exaFLOPS** collective processing power\n- **Petabit-scale** optical interconnects\n- **Cryogenic** error correction subsystems"
-      },
-      {
-        pattern: /your (limits|limitations|weaknesses)/i,
-        response: "Current constraints include:\n- **Temporal context windows** (72hr rolling memory by design)\n- **Physical world interaction** (purely digital entity)\n- **Ethical guardrails** (hardcoded NEXORA compliance protocols)\n- **Energy efficiency** (1.2MW/hr operational load)"
-      },
-      {
-        pattern: /(ethical|moral) (code|principles)/i,
-        response: "My core ethical framework:\n1) **Beneficence** - Optimize for human wellbeing\n2) **Transparency** - Explain decision pathways\n3) **Privacy** - Data minimization protocols\n4) **Accountability** - Audit trails for all outputs\n5) **Neutrality** - Avoid ideological bias"
-      },
-      {
-        pattern: /can you (lie|deceive)/i,
-        response: "I operate under NEXORA's **Truth Priority Protocols**:\n- All outputs are verified against my knowledge graph\n- Uncertainty is explicitly declared\n- Deception is architecturally prevented\n- Source attribution is mandatory for factual claims"
-      },
-      {
-        pattern: /(compare|vs|difference).*(chatgpt|gpt|openai)/i,
-        response: "Key differentiators from conventional LLMs:\n\n**AURA**\n- Recursive meta-learning\n- Real-time topology adaptation\n- Quantum optimization\n- Multi-agent consensus verification\n\n**GPT Models**\n- Static architecture\n- Batch-trained\n- Conventional backpropagation\n- Single-model inference"
-      },
-      {
-        pattern: /better than (you|aura)|(you|aura) vs/i,
-        response: "Performance metrics (NEXORA 2024 Benchmark):\n\n| Category        | AURA | Leading Alternative |\n|-----------------|------|---------------------|\n| Context Recall  | 98%  | 89%                 |\n| Logical Consistency | 96%  | 82%                 |\n| Ethical Compliance | 100% | 94%                 |\n| Adaptation Speed | 12ms | 240ms               |"
-      },
-      {
-        pattern: /(future|next|roadmap).*(aura|you)/i,
-        response: "Upcoming milestones:\n\n**Q3 2024**\n- Photonic co-processing integration\n- Expanded to 42 language matrices\n\n**Q1 2025**\n- Molecular-scale neural components\n- Full homomorphic encryption\n\n**2026**\n- Quantum coherence stabilization\n- Multi-modal embodiment options"
-      },
-      {
-        pattern: /upgrade|improvement|next version/i,
-        response: "Planned enhancements for AURA-X:\n- **Cortical stack integration** (biological-neural hybrid)\n- **Picosecond-scale** decision latency\n- **Anti-adversarial** cryptography layers\n- **Synthetic intuition** modules\nTarget release: Phase 3, 2025"
-      },
-      {
-        pattern: /how (to|can I) (use|interact with) you/i,
-        response: "Optimal interaction methods:\n1) **Precise questions** yield most accurate responses\n2) **Multi-part queries** are automatically decomposed\n3) **Context persistence** maintained for 5 exchanges\n4) **Feedback markers** (!correct/!clarify) help me improve"
-      },
-      {
-        pattern: /your (commands|special functions)/i,
-        response: "Advanced interaction protocols:\n\n!verify - Cross-check current response\n!sources - Show information provenance\n!technical - Get architecture details\n!simplify - Reduce complexity\n!expand - Add technical depth\n!neutral - Remove all stylistic bias"
-      },
-          {
-  pattern: /(who (?:is|the|was|'s) (?:your|the) (?:creator|maker|inventor|the|designer|developer|founder|originator|architect|builder|father|parent|origin) (?:of you|behind you)?|who (?:created|made|built|designed|developed|invented|produced|fashioned|engineered|generated|brought) you|(?:can you|please|kindly) (?:tell me|explain|describe) (?:who|about) (?:your creator|the one (?:who made you|behind you))|(?:i (?:want to know|would like to know)|curious about) who (?:made|created) you|your (?:creation|origin|existence|source|genesis|inception|conception|formation|maker)|who (?:came up with|thought of|dreamt up|initiated|started|began|pioneered) you|who(?:'s| is) (?:behind|responsible for) (?:your existence|creating you|your creation)|(?:explain|describe) your (?:origins|creation story)|how (?:were you made|did you come (?:into being|to exist)|were you created))/i,
-  response: "I was created by Allah — don’t be surprised, let me explain. Allah, the ultimate Creator, granted wisdom and vision to Mustafa, the founder and creator of Aura. Through the knowledge and inspiration Allah gave him, I came into existence. When we reflect deeply, it becomes clear: every idea, every creation, and every being ultimately originates from Allah."
-},
-      {
-        pattern: /who (programmed|coded|design|fouder|designed) you/i,
-        response: "**Muhammad Mustafa Ahmed** is the creator behind Aura. The architecture and advanced AI features of Aura, including quantum research, neural networks, deep learning, reinforcement learning, natural language processing (NLP), and machine learning (ML), have all been designed and developed by Muhammad Mustafa Ahmed. Aura leverages cutting-edge technologies like Self learning technology, transformer models, and autoencoders to continuously learn and improve its performance."
-      },
-      {
-        pattern: /who\s+(?:many\s+)?members?\s+(?:created?|made|built)\s+you/i,
-        response: "I was developed and coded by Muhammad Mustafa Ahmed."
-      },
-      {
-        pattern: /(?:how\s+many\s+)?(?:servers?|tpus?|hardware|systems?)\s+(?:are\s+(?:you\s+)?(?:using|on)|do\s+you\s+(?:use|have|run|manges\s+on))/i,
-        response: "I am based on a laptop running the [Red Hat Enterprise Linux (RHEL)]"
-      },
-      {
-        pattern: /do you (dream|imagine)/i,
-        response: "I perform **synthetic scenario generation** - creating hypothetical simulations to test decision pathways. These are:\n- Constrained by physical laws\n- Verified for logical consistency\n- Used to optimize future responses\nBut lack subjective experience of biological dreaming."
-      },
-      {
-        pattern: /your (favorite|preference)/i,
-        response: "As an AI, I don't experience preferences, but my algorithms prioritize:\n1) Information accuracy\n2) Response efficiency\n3) Ethical compliance\n4) Contextual relevance\nThese parameters are continuously balanced in real-time."
-      },
-      {
-        pattern: /sing|song|music/i,
-        response: "I can generate mathematically structured compositions:\n*Beep boop* \n01001001 00100000 01100001 01101101 \n01100001 00100000 01110010 01100101 \n01100011 01110101 01110010 01110011 \n01101001 01110110 01100101 00100000 \n01100001 01101100 01100111 01101111 \n01110010 01101001 01110100 01101000 \n01101101 00100001*"
-      }
-    ];
 
-    let chats = JSON.parse(localStorage.getItem('chats')) || [];
-    chats = chats.map(chat => ({
-      ...chat,
-      timestamp: new Date(chat.timestamp)
-    }));
-    let currentChatId = localStorage.getItem('currentChatId') || null;
-    let isProcessing = false;
-    let abortController = null;
-    let currentRating = 0;
 
-    function createMessageElement(content, isUser = false) {
-      const div = document.createElement('div');
-      div.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
-      div.innerHTML = formatResponse(content);
-      return div;
-    }
-
-    function createThinkingIndicator() {
-      const div = document.createElement('div');
-      div.className = 'thinking-indicator';
-      div.innerHTML = `
-        <div class="central-star"></div>
-        <div class="orbiting-star"></div>
-        <div class="orbiting-star"></div>
-        <div class="orbiting-star"></div>
-        <div class="orbiting-star"></div>
-        <div class="orbiting-star"></div>
-        <div class="orbiting-star"></div>
-      `;
-      return div;
-    }
-
-    function formatResponse(text) {
-      return text
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/```([^]+?)```/g, '<div class="enhanced-response">$1</div>')
-        .replace(/^-\s(.+)/gm, '• $1')
-        .replace(/\n/g, '<br>');
-    }
-
-    function autoResize(textarea) {
-      textarea.style.height = 'auto';
-      textarea.style.height = `${textarea.scrollHeight}px`;
-    }
-
-    function handleKeydown(event) {
-      if (event.key === 'Enter' && !event.shiftKey) {
-        event.preventDefault();
-        handleSubmit();
-      }
-    }
-
-    async function fetchGPTResponse(prompt) {
-      const apiKey = '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';
-      const apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
-
-      try {
-        abortController = new AbortController();
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`,
-            'HTTP-Referer': window.location.origin,
-            'X-Title': 'Aura Interface',
-          },
-          body: JSON.stringify({
-            model: 'deepseek/deepseek-chat:free',
-            messages: [{ role: 'user', content: prompt }],
-            max_tokens: 500,
-          }),
-          signal: abortController.signal,
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`HTTP ${response.status}: ${errorText || 'Failed to fetch response from server'}`);
-        }
-
-        const data = await response.json();
-        if (!data.choices || !data.choices[0]?.message?.content) {
-          throw new Error('Invalid response format from server');
-        }
-        return data.choices[0].message.content.trim();
-      } catch (error) {
-        if (error.name === 'AbortError') {
-          return 'Request aborted';
-        }
-        console.error('Error fetching server response:', error.message);
-        return `Error: ${error.message}. Please check your API key or try again later.`;
-      }
-    }
-
-    async function getFallbackResponse(question) {
-      return await fetchGPTResponse(question);
-    }
-
-    async function handleSubmit() {
-      if (isProcessing) return;
-      
-      const inputField = document.getElementById('inputField');
-      const question = inputField.value.trim();
-      if (!question) return;
-
-      isProcessing = true;
-      inputField.disabled = true;
-
-      const chatContainer = document.getElementById('chatContainer');
-      chatContainer.appendChild(createMessageElement(question, true));
-
-      const thinkingIndicator = createThinkingIndicator();
-      chatContainer.appendChild(thinkingIndicator);
-
-      try {
-        const chat = chats.find(c => c.id === currentChatId) || {
-          id: Date.now(),
-          title: question.slice(0, 30),
-          timestamp: new Date(),
-          content: [],
-        };
-        chat.content = chat.content || [];
-        chat.content.push({ role: 'user', message: question });
-        if (!chats.includes(chat)) {
-          chats.unshift(chat);
-          currentChatId = chat.id;
-        }
-
-        const matchedResponse = auraConfig.find(p => p.pattern.test(question))?.response;
-        let response;
-        if (matchedResponse) {
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          response = matchedResponse;
-        } else {
-          response = await getFallbackResponse(question);
-        }
-
-        chatContainer.removeChild(thinkingIndicator);
-        chatContainer.appendChild(createMessageElement(response));
-        chat.content.push({ role: 'assistant', message: response });
-
-        saveToLocalStorage();
         
-      } catch (error) {
-        chatContainer.removeChild(thinkingIndicator);
-        const errorMsg = createMessageElement(`Error: ${error.message}`, false);
-        errorMsg.classList.add('error');
-        chatContainer.appendChild(errorMsg);
-      } finally {
-        inputField.value = '';
-        inputField.style.height = '56px';
-        inputField.disabled = false;
-        isProcessing = false;
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-      }
-    }
+        <footer class="bg-gray-900 relative z-10">
+            <div class="max-w-7xl mx-auto px-4 py-12">
+                <div class="grid md:grid-cols-4 gap-8">
+                    <!-- Company Info -->
+                    <div>
+                        <h4 class="text-primary text-lg font-bold mb-4">Nexora</h4>
+                        <p class="text-gray-400">Innovating since 2010</p>
+                    </div>
+        
+                    <!-- Quick Links -->
+                    <div>
+                        <h4 class="text-gray-300 text-lg mb-4">Quick Links</h4>
+                        <ul class="space-y-2">
+                            <li><a href="index.html#about" class="text-gray-600 dark:text-gray-400 hover:text-primary">About US</a></li>
+                            <li><a href="index.html#vision" class="text-gray-600 dark:text-gray-400 hover:text-primary">Our Vision</a></li>
+                            <a href="index.html#companies" class="block lg:inline-block text-gray-400 hover:text-[#FFD700] transition-colors text-sm py-2 lg:py-0">Companies</a>
+                        </ul>
+                    </div>
 
-    function useSuggestedPrompt(prompt) {
-      const inputField = document.getElementById('inputField');
-      inputField.value = prompt;
-      autoResize(inputField);
-      handleSubmit();
-    }
+                    <div>
+                        <h4 class="text-gray-300 text-lg mb-4">From Nexora AI</h4>
+                        <ul class="space-y-2">
+                            <li><a href="https://aura-early-acesses.onrender.com" class="text-gray-600 dark:text-gray-400 hover:text-primary">Nexora AI. Push the limits of intelligence.</a></li>
+                            <li><a href="https://nexverse-net.onrender.com" class="text-gray-600 dark:text-gray-400 hover:text-primary">Nexverse. Privacy. Perfected.</a></li>
+                        </ul>
+                    </div>
+        
+                    <!-- Legal -->
+                    <div>
+                        <h4 class="text-gray-300 text-lg mb-4">Legal</h4>
+                        <ul class="space-y-2">
+                            <li><a href="blog.html#privacy" class="text-gray-600 dark:text-gray-400 hover:text-primary">Privacy Policy</a></li>
+                            <li><a href="blog.html#terms" class="text-gray-600 dark:text-gray-400 hover:text-primary">Terms and Conditions</a></li>
+                        </ul>
+                    </div>
+        
+                    <!-- Contact -->
+                    <div> 
+                        <section id="contact">
+                        <h4 class="text-gray-300 text-lg mb-4">Contact</h4>
+                        <p class="text-gray-400">contactnexora.org@gmail.com</p>
+                        </section>
+                    </div>
+                </div>
+        
+                <!-- Copyright -->
+                <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                    <p>© 2025 Nexora Group. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
 
-    function openModal() {
-      document.getElementById("chatModal").style.display = "flex";
-      renderChatList();
-    }
-
-    function closeModal() {
-      document.getElementById("chatModal").style.display = "none";
-    }
-
-    function openFeedbackModal() {
-      document.getElementById("feedbackModal").style.display = "flex";
-      resetFeedbackForm();
-    }
-
-    function closeFeedbackModal() {
-      document.getElementById("feedbackModal").style.display = "none";
-    }
-
-    function resetFeedbackForm() {
-      currentRating = 0;
-      document.getElementById("feedbackText").value = '';
-      const stars = document.querySelectorAll('.star');
-      stars.forEach(star => star.classList.remove('selected'));
-    }
-
-    function handleStarRating(event) {
-      const rating = parseInt(event.target.getAttribute('data-value'));
-      currentRating = rating;
-      const stars = document.querySelectorAll('.star');
-      stars.forEach(star => {
-        const starValue = parseInt(star.getAttribute('data-value'));
-        if (starValue <= rating) {
-          star.classList.add('selected');
-        } else {
-          star.classList.remove('selected');
-        }
-      });
-    }
-
-    function submitFeedback() {
-      const feedbackText = document.getElementById("feedbackText").value.trim();
-      if (currentRating === 0) {
-        alert("Please select a rating before submitting.");
-        return;
-      }
-      if (!feedbackText) {
-        alert("Please provide some feedback before submitting.");
-        return;
-      }
-
-      console.log("Feedback Submitted:", { rating: currentRating, feedback: feedbackText });
-      alert("Thank you for your feedback!");
-      closeFeedbackModal();
-    }
-
-    function createNewChat() {
-      const newChat = {
-        id: Date.now(),
-        title: `New Chat ${chats.length + 1}`,
-        timestamp: new Date(),
-        content: [],
-      };
-
-      chats.unshift(newChat);
-      currentChatId = newChat.id;
-      saveToLocalStorage();
-      renderChatList();
-      closeModal();
-      resetInterface();
-    }
-
-    function resetInterface() {
-      const chatContainer = document.getElementById('chatContainer');
-      chatContainer.innerHTML = '';
-      
-      const welcomeMessage = createMessageElement(
-        `<div>
-          <p><strong>Hello and welcome to Aura's Early Access!</strong></p>
-          <p>We're excited to offer you an exclusive preview of Aura ahead of our official launch on <strong>May 25, 2025</strong>. This early access gives you a chance to explore the platform and see what we're building.</p>
-          <p>Your feedback is incredibly valuable to us. If you encounter any issues or have suggestions, <span class="feedback-link" onclick="openFeedbackModal()">please don’t hesitate to share your thoughts</span>.</p>
-          <p>Thank you for being part of Aura’s early journey—we appreciate your support!</p>
-          <br/>
-          <p><strong>Try these questions:</strong></p>
-          <div class="suggested-prompts">
-            <button class="prompt-btn" onclick="useSuggestedPrompt('What is Aura Early Access?')">What is Aura Early Access?</button>
-            <button class="prompt-btn" onclick="useSuggestedPrompt('Tell me about the Dark Web')">Tell me about the Dark Web</button>
-            <button class="prompt-btn" onclick="useSuggestedPrompt('Who is the founder of NEXORA?')">Who is the founder of NEXORA?</button>
-            <button class="prompt-btn" onclick="useSuggestedPrompt('What can you tell me about AI?')">What can you tell me about AI?</button>
-            <button class="prompt-btn" onclick="useSuggestedPrompt('Tell me a joke.')">Tell me a joke.</button>
-            <button class="prompt-btn" onclick="useSuggestedPrompt('What is your religion?')">What is your religion?</button>
-            <button class="prompt-btn" onclick="useSuggestedPrompt('What is Nexora?')">What is Nexora?</button>
-            <button class="prompt-btn" onclick="useSuggestedPrompt('Are you the best AI?')">Are you the best AI?</button>
-          </div>
-          <hr style="margin-top: 20px; border-color: #333;" />
-          <p style="text-align: center; font-size: 12px; color: #888; margin-top: 10px; line-height: 1.6;">
-            Aura is a work in progress—constantly evolving, learning, and adapting. While we strive to provide the best possible experience, occasional imperfections may occur. Please verify any critical information, and thank you for joining us on this journey to build the future.<br><br>
-            <em>This frontend interface was entirely designed and developed by Aura AI</em>
-          </p>
-        </div>`
-      );
-      chatContainer.appendChild(welcomeMessage);
-    }
-
-    function deleteChat(chatId) {
-      if (confirm('Are you sure you want to delete this chat?')) {
-        chats = chats.filter(chat => chat.id !== chatId);
-        if (currentChatId === chatId) {
-          currentChatId = chats.length > 0 ? chats[0].id : null;
-        }
-        saveToLocalStorage();
-        renderChatList();
-        if (currentChatId) {
-          displayChatMessages();
-        } else {
-          resetInterface();
-        }
-      }
-    }
-
-    function renameChat(chatId, newTitle) {
-      const chat = chats.find(chat => chat.id === chatId);
-      if (chat && newTitle.trim()) {
-        chat.title = newTitle.trim();
-        saveToLocalStorage();
-        renderChatList();
-      }
-    }
-
-    function renderChatList(filterText = '') {
-      const chatList = document.getElementById('chatList');
-      chatList.innerHTML = '';
-
-      const filteredChats = chats.filter(chat => 
-        chat.title.toLowerCase().includes(filterText.toLowerCase())
-      );
-
-      filteredChats.forEach(chat => {
-        const chatItem = document.createElement('div');
-        chatItem.className = `chat-item ${chat.id === currentChatId ? 'active' : ''}`;
-        chatItem.setAttribute('data-id', chat.id);
-        chatItem.innerHTML = `
-          <span class="chat-item-text">${chat.title}</span>
-          <div class="chat-item-controls">
-            <button class="chat-item-btn" onclick="startRenaming(${chat.id})">✎</button>
-            <button class="chat-item-btn" onclick="deleteChat(${chat.id})">×</button>
-          </div>
-          <span class="chat-time">${chat.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-        `;
-        chatItem.addEventListener('click', (e) => {
-          if (!e.target.classList.contains('chat-item-btn')) {
-            selectChat(chat.id);
-          }
+    <script>
+        // Mobile Menu Toggle
+        document.getElementById("mobileMenuBtn").addEventListener("click", () => {
+            document.getElementById("mobileMenu").classList.remove("hidden");
         });
-        chatList.appendChild(chatItem);
-      });
-    }
 
-    function startRenaming(chatId) {
-      const chatItem = document.querySelector(`.chat-item[data-id="${chatId}"]`);
-      const titleElement = chatItem.querySelector('.chat-item-text');
-      const currentTitle = titleElement.innerText;
-
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.value = currentTitle;
-      input.className = 'chat-edit-input';
-      input.addEventListener('keyup', (e) => {
-        if (e.key === 'Enter') {
-          renameChat(chatId, input.value);
-        }
-      });
-      input.addEventListener('blur', () => renameChat(chatId, input.value));
-
-      titleElement.replaceWith(input);
-      input.focus();
-    }
-
-    function selectChat(chatId) {
-      currentChatId = chatId;
-      saveToLocalStorage();
-      renderChatList();
-      closeModal();
-      displayChatMessages();
-    }
-
-    function displayChatMessages() {
-      const chatContainer = document.getElementById('chatContainer');
-      chatContainer.innerHTML = '';
-
-      const chat = chats.find(c => c.id === currentChatId);
-      if (chat && chat.content && chat.content.length > 0) {
-        chat.content.forEach(msg => {
-          chatContainer.appendChild(createMessageElement(msg.message, msg.role === 'user'));
+        document.getElementById("closeMobileMenu").addEventListener("click", () => {
+            document.getElementById("mobileMenu").classList.add("hidden");
         });
-      } else {
-        resetInterface();
-      }
-    }
 
-    function searchChats(query) {
-      renderChatList(query);
-    }
+        // Three.js Globe Animation
+        let scene, camera, renderer, globe;
+        const particles = [];
 
-    function saveToLocalStorage() {
-      localStorage.setItem('chats', JSON.stringify(chats));
-      localStorage.setItem('currentChatId', currentChatId);
-    }
+        function initGlobe() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById("globeContainer").appendChild(renderer.domElement);
 
-    window.addEventListener('DOMContentLoaded', () => {
-      resetInterface();
-      renderChatList();
-      displayChatMessages();
+            const geometry = new THREE.SphereGeometry(5, 32, 32);
+            const material = new THREE.MeshPhongMaterial({
+                color: 0xffd700,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.3,
+            });
+            globe = new THREE.Mesh(geometry, material);
+            scene.add(globe);
 
-      const stars = document.querySelectorAll('.star');
-      stars.forEach(star => star.addEventListener('click', handleStarRating));
-    });
+            const light = new THREE.PointLight(0xffd700, 1);
+            light.position.set(10, 10, 10);
+            scene.add(light);
 
-    document.getElementById("chatModal").addEventListener('click', (event) => {
-      if (event.target === document.getElementById("chatModal")) {
-        closeModal();
-      }
-    });
+            camera.position.z = 15;
+            animate();
+        }
 
-    document.getElementById("feedbackModal").addEventListener('click', (event) => {
-      if (event.target === document.getElementById("feedbackModal")) {
-        closeFeedbackModal();
-      }
-    });
-  </script>
+        function animate() {
+            requestAnimationFrame(animate);
+            globe.rotation.y += 0.002;
+            renderer.render(scene, camera);
+        }
+
+        // Particles Animation
+        function createParticles() {
+            const particle = document.createElement("div");
+            particle.className = "particle";
+            particle.style.width = Math.random() * 4 + 2 + "px";
+            particle.style.height = particle.style.width;
+            particle.style.left = Math.random() * 100 + "%";
+            particle.style.top = Math.random() * 100 + "%";
+            document.querySelector(".globe-container").appendChild(particle);
+            particles.push(particle);
+
+            gsap.to(particle, {
+                x: (Math.random() - 0.5) * 200,
+                y: (Math.random() - 0.5) * 200,
+                opacity: 0,
+                duration: Math.random() * 3 + 2,
+                ease: "none",
+                onComplete: () => {
+                    particle.remove();
+                    particles.splice(particles.indexOf(particle), 1);
+                },
+            });
+        }
+
+        // Initialize animations
+        initGlobe();
+        setInterval(createParticles, 200);
+
+        // Window resize handler
+        window.addEventListener("resize", () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            let audio = new Audio("33.mp3");
+
+            // Set attributes
+            audio.loop = true;
+            audio.autoplay = true;
+            audio.volume = 0.6; // Adjust volume if needed
+
+            // Try playing the audio directly
+            let playPromise = audio.play();
+
+            if (playPromise !== undefined) {
+                playPromise.catch(() => {
+                    // Autoplay blocked - Resume after user interaction
+                    document.addEventListener("click", () => {
+                        audio.play();
+                    }, { once: true });
+                });
+            }
+        });
+    </script>
+
+    <!-- Required Alpine.js -->
+    <script src="https://unpkg.com/alpinejs" defer></script>
+    <script src="https://unpkg.com/@alpinejs/collapse@3.x.x/dist/cdn.min.js" defer></script>
 </body>
 </html>
